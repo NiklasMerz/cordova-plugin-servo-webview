@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:rim="http://www.blackberry.com/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-ionic-webview" version="5.0.0">
+    <name>cordova-plugin-servo-webview</name>
+    <description>Servo Web View Engine Plugin</description>
+    <license>TODO</license>
+    <keywords>cordova,servo</keywords>
+    <repo>https://github.com/niklasmerz/cordova-plugin-servo-webview</repo>
+  
+  <platform name="android">
+    <config-file target="config.xml" parent="/*">
+      <preference name="webView" value="com.merzlabs.cordova.webview.ServoWebViewEngine"/>
+      <feature name="ServoWebView">
+          <param name="android-package" value="com.merzlabs.cordova.webview.ServoWebView"/>
+      </feature>
+    </config-file>
+    <source-file src="src/android/com/merzlabs/cordova/webview/ServoWebViewEngine.java" target-dir="src/com/merzlabs/cordova/webview"/>
+  </platform>
+
+  <author>Niklas Merz</author>
+</plugin>

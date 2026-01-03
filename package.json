@@ -1,0 +1,30 @@
+{
+  "name": "cordova-plugin-servo-webview",
+  "version": "0.0.1",
+  "description": "Servo Web View Engine Plugin",
+  "scripts": {
+    "sync_plugin_xml": "sync-cordova-xml package.json plugin.xml --output=plugin.xml",
+    "version": "npm run sync_plugin_xml && git add plugin.xml",
+    "cz": "git-cz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niklasmerz/cordova-plugin-servo-webview"
+  },
+  "bugs": {
+    "url": "https://github.com/niklasmerz/cordova-plugin-servo-webview/issues"
+  },
+  "keywords": [
+    "cordova",
+    "servo"
+  ],
+  "author": "Niklas Merz",
+  "license": "TODO",
+  "engines": {
+    "cordovaDependencies": {
+      "cordova": ">=10.0.0"
+    }
+  },
+  "devDependencies": {
+  }
+}
