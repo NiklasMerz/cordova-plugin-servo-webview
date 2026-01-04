@@ -1,0 +1,11 @@
+android {
+    repositories {
+        flatDir {
+            dirs 'src/main/libs'
+        }
+    }
+}
+
+dependencies {
+    implementation(name: 'servoview', ext: 'aar')
+}
