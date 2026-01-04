@@ -1,0 +1,25 @@
+// Source - https://stackoverflow.com/a/30757738
+// Posted by Niko, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-01-04, License - CC BY-SA 3.0
+
+repositories{    
+  jcenter()
+  flatDir {
+      dirs 'libs'
+   }
+}
+
+dependencies {
+    // SERVO
+    implementation(files("libs/servoview.aar"))
+
+    // ServoView dependencies
+    implementation("androidx.appcompat:appcompat:1.7.1")
+}
+
+android {
+  packagingOptions {
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/LICENSE'
+  }
+}

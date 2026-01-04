@@ -18,6 +18,10 @@
     <source-file src="src/android/com/merzlabs/cordova/webview/ServoWebViewEngine.java" target-dir="src/com/merzlabs/cordova/webview"/>
     <source-file src="src/android/com/merzlabs/cordova/webview/CordovaServoView.java" target-dir="src/com/merzlabs/cordova/webview"/>
 
+    <framework src="src/android/servo.gradle" custom="true" type="gradleReference" />
+    <lib-file src="libs/servoview.aar" arch="device" />
+
+
   </platform>
 
   <author>Niklas Merz</author>
