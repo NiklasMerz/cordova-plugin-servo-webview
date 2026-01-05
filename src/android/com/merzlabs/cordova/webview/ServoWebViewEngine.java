@@ -143,6 +143,7 @@ public class ServoWebViewEngine implements CordovaWebViewEngine {
     public void destroy() {
         // ServoView cleanup
         // TODO ServoView may need additional cleanup
+        this.servoView.stop();
     }
 
     @Override
