@@ -1,12 +1,15 @@
 package com.merzlabs.cordova.webview;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CordovaWebViewEngine;
+import org.apache.cordova.LOG;
 import org.servo.servoview.Servo;
 
 /**
@@ -37,17 +40,21 @@ public class CordovaServoView extends org.servo.servoview.ServoView implements C
 
             @Override
             public void onLoadStarted() {
+                String url = parentEngine != null ? parentEngine.currentUrl : "unknown";
+                LOG.d("ServoView", "onLoadStarted: " + url);
                 if (parentEngine != null && parentEngine.client != null) {
-                    String url = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
-                    parentEngine.client.onPageStarted(url);
+                    String urlStr = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
+                    parentEngine.client.onPageStarted(urlStr);
                 }
             }
 
             @Override
             public void onLoadEnded() {
+                String url = parentEngine != null ? parentEngine.currentUrl : "unknown";
+                LOG.d("ServoView", "onLoadEnded: " + url);
                 if (parentEngine != null && parentEngine.client != null) {
-                    String url = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
-                    parentEngine.client.onPageFinishedLoading(url);
+                    String urlStr = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
+                    parentEngine.client.onPageFinishedLoading(urlStr);
                 }
             }
 

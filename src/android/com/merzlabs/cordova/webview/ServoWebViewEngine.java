@@ -84,6 +84,7 @@ public class ServoWebViewEngine implements CordovaWebViewEngine {
 
     @Override
     public void loadUrl(final String url, boolean clearNavigationStack) {
+        LOG.d(TAG, "loadUrl called with: " + url + " (clearStack=" + clearNavigationStack + ")");
         currentUrl = url;
         servoView.loadUri(url);
     }
