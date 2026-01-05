@@ -3,7 +3,7 @@
 // Retrieved 2026-01-04, License - CC BY-SA 3.0
 
 repositories{    
-  jcenter()
+  mavenCentral()
   flatDir {
       dirs 'libs'
    }
