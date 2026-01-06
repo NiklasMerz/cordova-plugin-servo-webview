@@ -15,6 +15,9 @@ dependencies {
 
     // ServoView dependencies
     implementation("androidx.appcompat:appcompat:1.7.1")
+    
+    // NanoHTTPD for serving assets without extraction
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
 }
 
 android {
