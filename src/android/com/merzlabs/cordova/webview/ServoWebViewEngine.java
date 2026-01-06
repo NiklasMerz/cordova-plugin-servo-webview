@@ -1,6 +1,8 @@
 package com.merzlabs.cordova.webview;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.net.Uri;
 import android.view.View;
 import android.webkit.ValueCallback;
 
@@ -15,6 +17,11 @@ import org.apache.cordova.ICordovaCookieManager;
 import org.apache.cordova.NativeToJsMessageQueue;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.LOG;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class ServoWebViewEngine implements CordovaWebViewEngine {
     public static final String TAG = "ServoWebViewEngine";
@@ -49,6 +56,8 @@ public class ServoWebViewEngine implements CordovaWebViewEngine {
         this.preferences = preferences;
         LOG.d(TAG, "Servo WebView Engine Starting Right Up 3...");
     }
+    
+    private boolean assetsExtracted = false;
 
     @Override
     public void init(CordovaWebView parentWebView, CordovaInterface cordova, final CordovaWebViewEngine.Client client,
@@ -86,7 +95,105 @@ public class ServoWebViewEngine implements CordovaWebViewEngine {
     public void loadUrl(final String url, boolean clearNavigationStack) {
         LOG.d(TAG, "loadUrl called with: " + url + " (clearStack=" + clearNavigationStack + ")");
         currentUrl = url;
-        servoView.loadUri(url);
+        
+        // Extract www assets once on first load
+        if (!assetsExtracted) {
+            extractAllAssets();
+            assetsExtracted = true;
+        }
+        
+        // Convert android_asset URLs to file:// URLs
+        String servoUrl = url;
+        if (url != null && url.startsWith("file:///android_asset/")) {
+            String assetPath = url.substring("file:///android_asset/".length());
+            LOG.d(TAG, "Converting android_asset URL. Asset path: " + assetPath);
+            
+            // Map to extracted file location - preserve directory structure
+            File outputFile = new File(cordova.getActivity().getFilesDir(), assetPath);
+            if (outputFile.exists()) {
+                servoUrl = "file://" + outputFile.getAbsolutePath();
+                LOG.d(TAG, "Mapped to extracted file: " + servoUrl);
+            } else {
+                LOG.e(TAG, "Extracted file not found at: " + outputFile.getAbsolutePath());
+            }
+        }
+        
+        LOG.d(TAG, "Loading URL in Servo: " + servoUrl);
+        servoView.loadUri(servoUrl);
+    }
+    
+    private void extractAllAssets() {
+        try {
+            Context context = cordova.getActivity();
+            File filesDir = context.getFilesDir();
+            LOG.d(TAG, "Extracting all www assets to: " + filesDir.getAbsolutePath());
+            
+            // Extract entire www directory, preserving structure
+            extractAssetFolderRecursive(context.getAssets(), "www", new File(filesDir, "www"));
+            
+            LOG.d(TAG, "Successfully extracted all www assets");
+        } catch (Exception e) {
+            LOG.e(TAG, "Failed to extract assets", e);
+        }
+    }
+    
+    private void extractAssetFolderRecursive(AssetManager assetManager, String srcPath, File destDir) {
+        try {
+            String[] assets = assetManager.list(srcPath);
+            
+            if (assets == null || assets.length == 0) {
+                // This is a file, not a directory - extract it
+                extractAssetFile(assetManager, srcPath, destDir.getParentFile(), destDir.getName());
+                return;
+            }
+            
+            // This is a directory - create it and process children
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+                LOG.d(TAG, "Created directory: " + destDir.getAbsolutePath());
+            }
+            
+            for (String asset : assets) {
+                String childSrcPath = srcPath + "/" + asset;
+                File childDestFile = new File(destDir, asset);
+                extractAssetFolderRecursive(assetManager, childSrcPath, childDestFile);
+            }
+        } catch (Exception e) {
+            LOG.e(TAG, "Error extracting folder: " + srcPath, e);
+        }
+    }
+    
+    private void extractAssetFile(AssetManager assetManager, String srcPath, File destDir, String fileName) {
+        try {
+            File destFile = new File(destDir, fileName);
+            
+            // Skip if file already exists
+            if (destFile.exists()) {
+                return;
+            }
+            
+            // Create parent directories if needed
+            if (destDir != null && !destDir.exists()) {
+                destDir.mkdirs();
+            }
+            
+            LOG.d(TAG, "Extracting: " + srcPath + " -> " + destFile.getAbsolutePath());
+            
+            InputStream in = assetManager.open(srcPath);
+            OutputStream out = new FileOutputStream(destFile);
+            
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            
+            in.close();
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            LOG.e(TAG, "Error extracting file: " + srcPath, e);
+        }
     }
 
     @Override
