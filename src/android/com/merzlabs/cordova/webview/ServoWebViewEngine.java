@@ -1,167 +1,134 @@
 package com.merzlabs.cordova.webview;
 
 import android.content.Context;
-import android.view.View;
-import android.webkit.ValueCallback;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.AttributeSet;
+import android.view.KeyEvent;
 
-import org.apache.cordova.CordovaBridge;
-import org.apache.cordova.ConfigXmlParser;
 import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPreferences;
-import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CordovaWebViewEngine;
-import org.apache.cordova.ICordovaCookieManager;
-import org.apache.cordova.NativeToJsMessageQueue;
-import org.apache.cordova.PluginManager;
 import org.apache.cordova.LOG;
+import org.servo.servoview.Servo;
 
-public class ServoWebViewEngine implements CordovaWebViewEngine {
-    public static final String TAG = "ServoWebViewEngine";
-    protected final CordovaServoView servoView;
+/**
+ * Custom ServoView subclass that enables us to capture events needed for Cordova.
+ */
+public class CordovaServoView extends org.servo.servoview.ServoView implements CordovaWebViewEngine.EngineView {
+    private ServoWebViewEngine parentEngine;
+    private CordovaInterface cordova;
+    private ServoServer server;
 
-    protected String currentUrl = "";
-    protected boolean canGoBack = false;
-    protected CordovaPreferences preferences;
-    protected CordovaBridge bridge;
-    protected CordovaWebViewEngine.Client client;
-    protected CordovaWebView parentWebView;
-    protected CordovaInterface cordova;
-    protected PluginManager pluginManager;
-    protected CordovaResourceApi resourceApi;
-    protected NativeToJsMessageQueue nativeToJsMessageQueue;
-
-    /**
-     * Used when created via reflection.
-     */
-    public ServoWebViewEngine(Context context, CordovaPreferences preferences) {
-        this(new CordovaServoView(context), preferences);
-        LOG.d(TAG, "Servo WebView Engine Starting Right Up 1...");
+    public CordovaServoView(Context context) {
+        this(context, null);
     }
 
-    public ServoWebViewEngine(CordovaServoView webView) {
-        this(webView, null);
-        LOG.d(TAG, "Servo WebView Engine Starting Right Up 2...");
+    public CordovaServoView(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    public ServoWebViewEngine(CordovaServoView webView, CordovaPreferences preferences) {
-        this.servoView = webView;
-        this.preferences = preferences;
-        LOG.d(TAG, "Servo WebView Engine Starting Right Up 3...");
-    }
-
-    @Override
-    public void init(CordovaWebView parentWebView, CordovaInterface cordova, final CordovaWebViewEngine.Client client,
-            CordovaResourceApi resourceApi, PluginManager pluginManager,
-            NativeToJsMessageQueue nativeToJsMessageQueue) {
-        ConfigXmlParser parser = new ConfigXmlParser();
-        parser.parse(cordova.getActivity());
-
-        this.parentWebView = parentWebView;
+    void init(ServoWebViewEngine parentEngine, CordovaInterface cordova) {
         this.cordova = cordova;
-        this.client = client;
-        this.resourceApi = resourceApi;
-        this.pluginManager = pluginManager;
-        this.nativeToJsMessageQueue = nativeToJsMessageQueue;
-        servoView.init(this, cordova);
+        this.parentEngine = parentEngine;
+        this.server = new ServoServer(cordova);
+
+        // Enable debug for now
+        this.setServoArgs("[\"--devtools=6000\"]", "debug", true);
+
+        this.server.start();
+        
+        // Set up the Servo client to handle callbacks
+        setClient(new Servo.Client() {
+            @Override
+            public void onAlert(String message) {
+                // Handle JavaScript alert
+            }
+
+            @Override
+            public void onLoadStarted() {
+                String url = parentEngine != null ? parentEngine.currentUrl : "unknown";
+                LOG.d("ServoView", "onLoadStarted: " + url);
+                if (parentEngine != null && parentEngine.client != null) {
+                    String urlStr = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
+                    parentEngine.client.onPageStarted(urlStr);
+                }
+            }
+
+            @Override
+            public void onLoadEnded() {
+                String url = parentEngine != null ? parentEngine.currentUrl : "unknown";
+                LOG.d("ServoView", "onLoadEnded: " + url);
+                if (parentEngine != null && parentEngine.client != null) {
+                    String urlStr = parentEngine.currentUrl != null ? parentEngine.currentUrl : "";
+                    parentEngine.client.onPageFinishedLoading(urlStr);
+                }
+            }
+
+            @Override
+            public void onTitleChanged(String title) {
+                // Handle title changes
+            }
+
+            @Override
+            public void onUrlChanged(String url) {
+                if (parentEngine != null) {
+                    parentEngine.currentUrl = url;
+                }
+            }
+
+            @Override
+            public void onHistoryChanged(boolean canGoBack, boolean canGoForward) {
+                if (parentEngine != null) {
+                    parentEngine.canGoBack = canGoBack;
+                }
+            }
+
+            @Override
+            public void onRedrawing(boolean redrawing) {
+                // Handle redrawing state
+            }
+
+            @Override
+            public void onImeShow() {
+                // Handle IME show
+            }
+
+            @Override
+            public void onImeHide() {
+                // Handle IME hide
+            }
+
+            @Override
+            public void onMediaSessionMetadata(String title, String artist, String album) {
+                // Handle media session metadata
+            }
+
+            @Override
+            public void onMediaSessionPlaybackStateChange(int state) {
+                // Handle media session playback state
+            }
+
+            @Override
+            public void onMediaSessionSetPositionState(float duration, float position, float playbackRate) {
+                // Handle media session position state
+            }
+        });
     }
 
     @Override
     public CordovaWebView getCordovaWebView() {
-        return parentWebView;
+        return parentEngine != null ? parentEngine.getCordovaWebView() : null;
     }
 
     @Override
-    public ICordovaCookieManager getCookieManager() {
-        // TODO ServoView does not have a cookie manager, yet
-        return null;
-    }
-
-    @Override
-    public View getView() {
-        return servoView;
-    }
-
-    @Override
-    public void loadUrl(final String url, boolean clearNavigationStack) {
-        LOG.d(TAG, "loadUrl called with: " + url + " (clearStack=" + clearNavigationStack + ")");
-        currentUrl = url;
-        servoView.loadUri(url);
-    }
-
-    @Override
-    public String getUrl() {
-        return currentUrl;
-    }
-
-    @Override
-    public void stopLoading() {
-        servoView.stop();
-    }
-
-    @Override
-    public void clearCache() {
-        // ServoView doesn't have a direct clearCache method
-        LOG.w(TAG, "clearCache not implemented for ServoView");
-    }
-
-    @Override
-    public void clearHistory() {
-        // ServoView doesn't have a direct clearHistory method
-        canGoBack = false;
-        LOG.w(TAG, "clearHistory not implemented for ServoView");
-    }
-
-    @Override
-    public boolean canGoBack() {
-        return canGoBack;
-    }
-
-    /**
-     * Go to previous page in history.
-     *
-     * @return true if we went back, false if we are already at top
-     */
-    @Override
-    public boolean goBack() {
-        if (canGoBack) {
-            servoView.goBack();
-            return true;
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (parentEngine != null && parentEngine.client != null) {
+            Boolean ret = parentEngine.client.onDispatchKeyEvent(event);
+            if (ret != null) {
+                return ret.booleanValue();
+            }
         }
-        return false;
-    }
-
-    @Override
-    public void setPaused(boolean value) {
-        if (value) {
-            servoView.onPause();
-        } else {
-            servoView.onResume();
-        }
-    }
-
-    @Override
-    public void destroy() {
-        // ServoView cleanup
-        // TODO ServoView may need additional cleanup
-        this.servoView.stop();
-    }
-
-    @Override
-    public void evaluateJavascript(String js, ValueCallback<String> callback) {
-        // Servo doesn't have evaluateJavascript
-        LOG.w(TAG, "evaluateJavascript not implemented for ServoView");
-
-        // For now, just log and callback with null
-        if (callback != null) {
-            callback.onReceiveValue(null);
-        }
-    }
-
-    /**
-     * Handle JavaScript bridge messages from alert()
-     */
-    protected void handleJsBridgeMessage(String message) {
-        LOG.w(TAG, "handleJsBridgeMessage not implemented for ServoView: " + message);
+        return super.dispatchKeyEvent(event);
     }
 }

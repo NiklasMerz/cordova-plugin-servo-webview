@@ -30,7 +30,7 @@ public class ServoServer {
         this.assetManager = cordova.getActivity().getAssets();
 
         // The HTTP server handles serving the local assets
-        server.get("/", new HttpServerRequestCallback() {
+        server.get(".*", new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
                 String path = request.getPath();
@@ -41,6 +41,10 @@ public class ServoServer {
                 if (path.isEmpty() || path.equals("/")) {
                     path = "www/index.html";
                 } else if (!path.startsWith("www/")) {
+                    // remove leading slash if present
+                    if (path.startsWith("/")) {
+                        path = path.substring(1);
+                    }
                     path = "www/" + path;
                 }
 
