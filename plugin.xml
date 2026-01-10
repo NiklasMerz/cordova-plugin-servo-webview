@@ -15,6 +15,12 @@
           <param name="android-package" value="com.merzlabs.cordova.webview.ServoWebView"/>
       </feature>
     </config-file>
+
+    <!-- WebSocket Bridge Module - runs immediately to intercept prompt -->
+    <js-module src="www/servo-bridge.js" name="ServoBridge">
+      <runs/>
+    </js-module>
+
     <source-file src="src/android/com/merzlabs/cordova/webview/ServoWebViewEngine.java" target-dir="src/com/merzlabs/cordova/webview"/>
     <source-file src="src/android/com/merzlabs/cordova/webview/CordovaServoView.java" target-dir="src/com/merzlabs/cordova/webview"/>
     <source-file src="src/android/com/merzlabs/cordova/webview/ServoServer.java" target-dir="src/com/merzlabs/cordova/webview"/>
