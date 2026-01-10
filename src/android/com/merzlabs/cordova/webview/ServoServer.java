@@ -9,8 +9,11 @@ import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 
 import android.content.res.AssetManager;
 
+import org.apache.cordova.CordovaBridge;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.LOG;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +26,13 @@ public class ServoServer {
     private static final String TAG = "ServoServer";
     private final AssetManager assetManager;
     AsyncHttpServer server = new AsyncHttpServer();
+    protected final CordovaBridge bridge;
 
     List<WebSocket> _sockets = new ArrayList<WebSocket>();
 
-    public ServoServer(CordovaInterface cordova) {
+    public ServoServer(CordovaInterface cordova, CordovaBridge bridge) {
         this.assetManager = cordova.getActivity().getAssets();
+        this.bridge = bridge;
 
         // The HTTP server handles serving the local assets
         server.get("^(?!/cordova-socket).*", new HttpServerRequestCallback() {
@@ -96,8 +101,34 @@ public class ServoServer {
                 webSocket.setStringCallback(new WebSocket.StringCallback() {
                     @Override
                     public void onStringAvailable(String s) {
-                        if ("Hello Server".equals(s))
+
+                        if ("Hello Server".equals(s)){
                             webSocket.send("Welcome Client!");
+                        } else {
+                            // Parse message into JSON and pass to bridge
+                            try {
+                                LOG.d(TAG, "Received call: " + s);
+                                JSONObject json = new JSONObject(s);
+                                String service = json.getString("service");
+                                String action = json.getString("action");
+                                String rawArgs = json.getJSONArray("args").toString();
+                                String callbackId = json.getString("callbackId");
+                                int bridgeSecret = json.getInt("bridgeSecret");
+
+                                // TODO figure out bridge secret
+
+                                //bridge.jsSetNativeToJsBridgeMode(0, 0);
+                                String ret = bridge.jsExec(bridgeSecret, service, action, callbackId, rawArgs);
+                                LOG.d(TAG, "Return: " + ret);
+                                if (ret != null)
+                                    webSocket.send(ret);
+                            } catch (JSONException e) {
+                                LOG.e(TAG, "Error parsing JSON from websocket", e);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
                     }
                 });
 
