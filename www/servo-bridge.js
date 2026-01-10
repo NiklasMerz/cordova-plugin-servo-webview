@@ -4,7 +4,6 @@
     var ws = null;
     var isConnected = false;
     var sendQueue = [];  // Outgoing messages waiting for connection
-    var receiveQueue = [];  // Incoming messages from WebSocket
 
     // Save original prompt function
     var originalPrompt = window.prompt;
@@ -62,11 +61,9 @@
                     }
                 } catch (e) {
                     console.error('[ServoWS] Error parsing message:', e, message);
-                    // Fallback: queue for polling
-                    receiveQueue.push(message);
                 }
             } else {
-                receiveQueue.push(message);
+                console.warn('[ServoWS] Cordova not initialized or callbackFromNative not available');
             }
         }
 
@@ -124,12 +121,6 @@
                     sendQueue.push(wsMessage);
                 }
 
-                // Return any queued response messages
-                if (receiveQueue.length > 0) {
-                    console.debug('[ServoWS] Returning queued message', receiveQueue[0]);
-                    return null;
-                }
-
                 // Return null because we are polling only for the requests
                 return null;
             }
@@ -142,11 +133,6 @@
             // gap_poll: prefix = retrieve messages
             else if (defaultValue.indexOf('gap_poll:') === 0) {
                 console.debug('[ServoWS] Polling for messages');
-                // Return queued messages from WebSocket
-                if (receiveQueue.length > 0) {
-                    return receiveQueue.shift();
-                }
-                // Return null because we are polling only for the requests
                 return null;
             }
             // gap_init: prefix = initialize bridge
