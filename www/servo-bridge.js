@@ -16,25 +16,6 @@
             console.info('[ServoWS] Connected to WebSocket server');
             isConnected = true;
             flushSendQueue();
-
-            // Enable polling mode AND force prompt-based bridge
-            setTimeout(function () {
-                if (typeof cordova !== 'undefined' && cordova.exec) {
-                    var androidExec = cordova.require('cordova/android/androidExec');
-                    if (androidExec) {
-                        // Force PROMPT mode for JS->Native (so we can intercept)
-                        if (androidExec.setJsToNativeBridgeMode) {
-                            androidExec.setJsToNativeBridgeMode(1); // PROMPT mode
-                            console.info('[ServoWS] Enabled PROMPT mode for JS->Native');
-                        }
-                        // Enable POLLING mode for Native->JS
-                        if (androidExec.setNativeToJsBridgeMode) {
-                            androidExec.setNativeToJsBridgeMode(0); // POLLING mode
-                            console.info('[ServoWS] Enabled POLLING mode for Native->JS');
-                        }
-                    }
-                }
-            }, 100);
         };
 
         ws.onmessage = function (event) {
@@ -146,14 +127,17 @@
                 // Return any queued response messages
                 if (receiveQueue.length > 0) {
                     console.debug('[ServoWS] Returning queued message', receiveQueue[0]);
-                    return receiveQueue.shift();
+                    return null;
                 }
-                return '';
+
+                // Return null because we are polling only for the requests
+                return null;
             }
             // gap_bridge_mode: prefix = set bridge mode
             else if (defaultValue.indexOf('gap_bridge_mode:') === 0) {
                 console.log('[ServoWS] Bridge mode set to:', message, defaultValue);
-                return '';
+                // Return null because we are polling only for the requests
+                return null;
             }
             // gap_poll: prefix = retrieve messages
             else if (defaultValue.indexOf('gap_poll:') === 0) {
@@ -162,12 +146,14 @@
                 if (receiveQueue.length > 0) {
                     return receiveQueue.shift();
                 }
-                return '';
+                // Return null because we are polling only for the requests
+                return null;
             }
             // gap_init: prefix = initialize bridge
             else if (defaultValue.indexOf('gap_init:') === 0) {
                 console.log('[ServoWS] Bridge initialization');
                 // Return a fake bridge secret (not used with WebSocket)
+                // TODO make secret work
                 return '1';
             }
         }
