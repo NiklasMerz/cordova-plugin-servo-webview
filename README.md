@@ -8,6 +8,7 @@ Whith this plugin for [Apache Cordova](https://cordova.apache.org) you can test 
 ## Why?
 
 > Servo aims to empower developers with a lightweight, high-performance alternative for embedding web technologies in applications. 
+
 From [servo.org](http://servo.org)
 
 ## How to use
