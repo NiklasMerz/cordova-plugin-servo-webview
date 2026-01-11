@@ -1,9 +1,12 @@
 (function () {
     'use strict';
+    var exec = require('cordova/exec');
 
     var ws = null;
     var isConnected = false;
     var sendQueue = [];  // Outgoing messages waiting for connection
+    var bridgeSecret = null;  // Store the actual bridge secret from native
+    var isBridgeInitialized = false;
 
     // Save original prompt function
     var originalPrompt = window.prompt;
@@ -12,15 +15,51 @@
         ws = new WebSocket('ws://localhost:5000/cordova-socket');
 
         ws.onopen = function () {
+            isBridgeInitialized = false;
+            bridgeSecret = null;
             console.info('[ServoWS] Connected to WebSocket server');
             isConnected = true;
-            flushSendQueue();
+            
+            // Init to get bridge secret from native
+            ws.send('gap_init:0');
         };
 
         ws.onmessage = function (event) {
             console.debug('[ServoWS] Received message:', event.data);
 
             let message = event.data;
+
+            if (message.indexOf('gap_init:') === 0) {
+                const actualSecret = message.substring('gap_init:'.length);
+                if (actualSecret) {
+                    bridgeSecret = actualSecret;
+                    console.debug('[ServoWS] Stored bridge secret:', actualSecret);
+                    console.debug('[ServoWS] Bridge initialized', isBridgeInitialized, bridgeSecret);
+                    
+                    // init android Exec again
+                    if (!isBridgeInitialized) {
+                        console.log('[ServoWS] Initializing Cordova exec with bridge secret');
+                        isBridgeInitialized = true;
+                        exec.init();
+                    }
+
+                    // The queued messages need the new bridge secret
+                    for (let i = 0; i < sendQueue.length; i++) {
+                        let queuedMsg = sendQueue[i];
+                        let execRequest = JSON.parse(queuedMsg);
+                        execRequest.bridgeSecret = bridgeSecret;
+                        sendQueue[i] = JSON.stringify(execRequest);
+                    }
+
+                    // Flush queued messages
+
+                    flushSendQueue();
+                } else {
+                    console.error('[ServoWS] Failed to get bridge secret from native');
+                }
+               
+                return;
+            }
 
             // TODO find out whats going on here
             // Remove all charaters before the first F or S
@@ -96,7 +135,7 @@
                 // Format: 'gap:' + JSON.stringify([bridgeSecret, service, action, callbackId])
                 var gapData = JSON.parse(defaultValue.substring(4));
                 console.debug('[ServoWS] Intercepted gap: call', gapData);
-                var bridgeSecret = gapData[0];
+                var requestBridgeSecrete = gapData[0];
                 var service = gapData[1];
                 var action = gapData[2];
                 var callbackId = gapData[3];
@@ -104,7 +143,7 @@
 
                 // Create exec request for WebSocket
                 var execRequest = {
-                    bridgeSecret: bridgeSecret,
+                    bridgeSecret: requestBridgeSecrete,
                     service: service,
                     action: action,
                     callbackId: callbackId,
@@ -137,10 +176,14 @@
             }
             // gap_init: prefix = initialize bridge
             else if (defaultValue.indexOf('gap_init:') === 0) {
-                console.log('[ServoWS] Bridge initialization');
-                // Return a fake bridge secret (not used with WebSocket)
-                // TODO make secret work
-                return '1';
+                console.trace('[ServoWS] Bridge initialization', message, defaultValue, "Secret", bridgeSecret);
+                if (bridgeSecret) {
+                    return bridgeSecret;
+                } else {
+                    console.warn('[ServoWS] Bridge secret not yet available, Calling native to init and refresh exec');
+                    ws.send(defaultValue);
+                    return null;
+                }
             }
         }
 
