@@ -1,11 +1,8 @@
 {
   "name": "cordova-plugin-servo-webview",
   "version": "0.0.1",
-  "description": "Servo Web View Engine Plugin",
+  "description": "Servo WebViewEngine for Cordova",
   "scripts": {
-    "sync_plugin_xml": "sync-cordova-xml package.json plugin.xml --output=plugin.xml",
-    "version": "npm run sync_plugin_xml && git add plugin.xml",
-    "cz": "git-cz"
   },
   "repository": {
     "type": "git",
@@ -16,10 +13,12 @@
   },
   "keywords": [
     "cordova",
+    "cordova-android",
+    "cordova-plugin",
     "servo"
   ],
   "author": "Niklas Merz",
-  "license": "TODO",
+  "license": "Apache-2.0",
   "engines": {
     "cordovaDependencies": {
       "cordova": ">=10.0.0"
