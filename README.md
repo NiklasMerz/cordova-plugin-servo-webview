@@ -37,3 +37,9 @@ Servo and it's ServoView Java implementation allow embedding Servo in Android ap
 
 1. The Cordova <-> Native bridge uses a legacy bridge mode and a local websocket server. There it's slower and way less secure
 2. Servo does not have something similar to [WebViewAssetLoader](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader) to "host" local files for the WebView therefore this plugins has a local webserver to host the assets in `www`
+
+## Funding
+
+This project is funded through [NGI Mobifree Fund](https://nlnet.nl/mobifree), a fund established by [NLnet](https://nlnet.nl) with financial support from the European Commission's [Next Generation Internet](https://ngi.eu) program. Learn more at the [NLnet project page](https://nlnet.nl/project/W3CWebview-tooling).
+
+[<img src="https://nlnet.nl/logo/banner.png" alt="NLnet foundation logo" width="20%" />](https://nlnet.nl)
