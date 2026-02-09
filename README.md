@@ -1,15 +1,17 @@
 # Servo for Cordova
 
 > [!WARNING]  
-> This plugin is built to demonstrate the usage of Servo in Cordova. Due to some workarounds that involve a webserver and websockets it's not really secure and **SHOULD NOT BE USED IN PRODUCTION app**. Read more under [Limitations](#limitations)
+> This plugin is built to demonstrate the usage of Servo in Cordova. Due to some workarounds that involve an embedded web server and websockets it's not secure and **SHOULD NOT BE USED IN PRODUCTION app**. Read more under [Limitations](#limitations)
 
-Whith this plugin for [Apache Cordova](https://cordova.apache.org) you can test [Servo](https://servo.org) an alternative engine on Android.
+With this plugin for [Apache Cordova](https://cordova.apache.org) you can try [Servo](https://servo.org) as an alternative engine on **Android (for now)**.
 
 ## Why?
 
 > Servo aims to empower developers with a lightweight, high-performance alternative for embedding web technologies in applications. 
 
 From [servo.org](http://servo.org)
+
+Servo looks promising as a new engine to power your WebView independently of the WebView the host operating system provides.
 
 ## How to use
 
@@ -19,7 +21,7 @@ You can add this to any Cordova app with:
 cordova plugin add https://github.com/NiklasMerz/cordova-plugin-servo-webview
 ```
 
-Because your app assets are served with a local webserver you need to adjust this in your config.xml:
+Because app assets are served with a local web server you need to adjust this in config.xml:
 
 ```xml
 <content src="http://localhost:5000" />
@@ -27,16 +29,29 @@ Because your app assets are served with a local webserver you need to adjust thi
 
 ## Status
 
-This is the first stage of development. Which means this plugin uses a build from Servos main branch without any modifications and just the current APIs. It works with come workarounds.
+This is the **first stage of development**. Which means this plugin uses a build from Servos main branch without any modifications and just the current APIs. It works with some workarounds.
 
-The second stage is working together with the Servo team to bring new APIs to Servo to make this plugin work without any hacks.
+```mermaid
+timeline
+    title Maturity
+    Servo TODAY: Legacy bridge mode with WebSocket workarounds
+           : Local webserver for assets
+    ServoView adds Custom ProtocolHandlers : API for local file loading
+           : Remove webserver for file serving
+    ServoView adds evaluateJavascript: Replace legacy bridge mode
+           : Two-way JavaScript bridge
+```
 
 ## Limitations
 
-Servo and it's ServoView Java implementation allow embedding Servo in Android apps pretty easily. Servo lacks some APIs that make it a perfect replacement for Android WebView. Therefore some workarounds are part of this version that have some serious drawbacks:
+Servo and it's ServoView Java implementation allow embedding Servo in Android apps. Servo lacks some APIs that make it a perfect replacement for Android WebView. Therefore some workarounds are part of this version that have some serious drawbacks:
 
-1. The Cordova <-> Native bridge uses a legacy bridge mode and a local websocket server. There it's slower and way less secure
-2. Servo does not have something similar to [WebViewAssetLoader](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader) to "host" local files for the WebView therefore this plugins has a local webserver to host the assets in `www`
+1. The Cordova ↔ Native bridge uses a legacy bridge mode and quite a few hacks to leverage a local websocket server for communication between the WebView and native code. **It's slow, unreliable and insecure, unfortunately**.
+2. Servo does not have something similar to [WebViewAssetLoader](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader) to "host" local files for the WebView therefore this plugin has a local web server to host the assets in `www`
+
+## Updating the Servo version
+
+If you want to update the Servo version yourself check out the README in `/libs` directory where and how to get the latest build of Servo.
 
 ## Funding
 
