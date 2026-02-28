@@ -1,7 +1,7 @@
 # Servo for Cordova
 
 > [!WARNING]  
-> This plugin is built to demonstrate the usage of Servo in Cordova. Due to some workarounds that involve an embedded web server and websockets it's not secure and **SHOULD NOT BE USED IN PRODUCTION app**. Read more under [Limitations](#limitations)
+> This plugin is built to demonstrate the usage of Servo in Cordova. Due to some workarounds that involve an embedded web server and WebSockets it's not secure and **SHOULD NOT BE USED IN PRODUCTION apps**. Read more under [Limitations](#limitations--workarounds)
 
 With this plugin for [Apache Cordova](https://cordova.apache.org) you can try [Servo](https://servo.org) as an alternative engine on **Android (for now)**.
 
@@ -11,11 +11,11 @@ With this plugin for [Apache Cordova](https://cordova.apache.org) you can try [S
 
 From [servo.org](http://servo.org)
 
-Servo looks promising as a new engine to power your WebView independently of the WebView the host operating system provides.
+Servo looks promising as a new engine to power Cordova and other WebView uses cases independently of the WebView the host operating system provides.
 
 ## How to use
 
-You can add this to any Cordova app with:
+You can add this to any Cordova project with:
 
 ```
 cordova plugin add cordova-plugin-servo-webview
@@ -31,7 +31,7 @@ Because app assets are served with a local web server you need to adjust this in
 
 This is the **first stage of development**. Which means this plugin uses a build from Servos main branch without any modifications and just the current APIs. It works with some workarounds.
 
-When Servo add the two important features **1. Custom URL scheme handler & 2. evaluateJavaScript** to their Java API this plugin can implement proper solutions and get rid of limitations as outlined below.
+When Servo adds two important features **1. Custom URL scheme handler & 2. evaluateJavaScript** to their Java API this plugin can get rid of limitations as outlined below and work pretty similar to AndroidWebView without adding insecure hacks to Cordova.
 
 ```mermaid
 %%{init: {
@@ -49,18 +49,19 @@ timeline
     title Maturity
     Servo TODAY: Legacy bridge mode with WebSocket workarounds
         : Local webserver for assets
-    ServoView adds Custom ProtocolHandlers : API for local file loading
+    ServoView adds Custom ProtocolHandlers : Use custom scheme API for local file loading
         : Remove webserver for file serving
     ServoView adds evaluateJavascript: Replace WebSocket bridge mode
-        : Two-way JavaScript bridge
+        : Leverage two-way JavaScript bridge
+        : Remove web server entirely
 ```
 
 ## Limitations & Workarounds
 
-Servo and it's ServoView Java implementation allow embedding Servo in Android apps. Servo lacks some APIs that make it a perfect replacement for Android WebView. Therefore some workarounds are part of this version that have some serious drawbacks:
+Servo and it's ServoView Java implementation allow embedding Servo in Android apps pretty neatly. Servo lacks some APIs that make it a perfect replacement for Android WebView today. Therefore, some workarounds are part of this version that have some serious drawbacks:
 
-1. The Cordova ↔ Native bridge uses a legacy bridge mode and quite a few hacks to leverage a local websocket server for communication between the WebView and native code. **It's slow, unreliable and insecure, unfortunately**.
-2. Servo does not have something similar to [WebViewAssetLoader](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader) to "host" local files for the WebView therefore this plugin has a local web server to host the assets in `www`
+1. The Cordova ↔ Native bridge uses a legacy bridge mode and quite a few hacks to leverage a local WebSocket server for communication between the WebView and native code. **It's slow, unreliable and insecure, unfortunately**.
+2. Servo does not have something similar to [WebViewAssetLoader](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader) to "host" local files for the WebView therefore this plugin has a local web server to host the assets from the `www` directory.
 
 ## Updating the Servo version
 
