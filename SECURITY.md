@@ -8,4 +8,4 @@ The latest version of the plugin is the only supported version right now.
 
 ## Reporting a Vulnerability
 
-If you encounter any security related issues please contact me via the e-mail from my [GitHub](https://github.com/niklasmerz) profile before publishing it. I will create a new security advisory on GitHub as soon as possible. Security advisories allow us to discuss the issue privately and work on a solution before releasing any details.
+If you encounter any security related issues please report it on [GitHub](https://github.com/NiklasMerz/cordova-plugin-servo-webview/security/advisories) or contact me via the e-mail from my [GitHub](https://github.com/niklasmerz) profile before publishing it. I will create a new security advisory on GitHub as soon as possible. Security advisories allow us to discuss the issue privately and work on a solution before releasing any details.
