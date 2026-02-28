@@ -31,18 +31,31 @@ Because app assets are served with a local web server you need to adjust this in
 
 This is the **first stage of development**. Which means this plugin uses a build from Servos main branch without any modifications and just the current APIs. It works with some workarounds.
 
+When Servo add the two important features **1. Custom URL scheme handler & 2. evaluateJavaScript** to their Java API this plugin can implement proper solutions and get rid of limitations as outlined below.
+
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "cScale0": "#22c55e",
+    "cScale1": "#ef4444",
+    "cScale2": "#ef4444",
+    "cScaleLabel0": "#052e16",
+    "cScaleLabel1": "#450a0a",
+    "cScaleLabel2": "#450a0a"
+  }
+}}%%
 timeline
     title Maturity
     Servo TODAY: Legacy bridge mode with WebSocket workarounds
-           : Local webserver for assets
+        : Local webserver for assets
     ServoView adds Custom ProtocolHandlers : API for local file loading
-           : Remove webserver for file serving
-    ServoView adds evaluateJavascript: Replace legacy bridge mode
-           : Two-way JavaScript bridge
+        : Remove webserver for file serving
+    ServoView adds evaluateJavascript: Replace WebSocket bridge mode
+        : Two-way JavaScript bridge
 ```
 
-## Limitations
+## Limitations & Workarounds
 
 Servo and it's ServoView Java implementation allow embedding Servo in Android apps. Servo lacks some APIs that make it a perfect replacement for Android WebView. Therefore some workarounds are part of this version that have some serious drawbacks:
 
