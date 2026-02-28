@@ -18,7 +18,7 @@ Servo looks promising as a new engine to power your WebView independently of the
 You can add this to any Cordova app with:
 
 ```
-cordova plugin add https://github.com/NiklasMerz/cordova-plugin-servo-webview
+cordova plugin add cordova-plugin-servo-webview
 ```
 
 Because app assets are served with a local web server you need to adjust this in config.xml:
